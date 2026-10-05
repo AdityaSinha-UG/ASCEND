@@ -38,10 +38,8 @@ export default function OnboardingPage() {
       setStage("goal");
     } else if (!hasSelectedAvatar) {
       setStage("avatar");
-    } else if (!player.tutorialCompleted) {
-      setStage("tutorial");
     } else {
-      router.replace("/home");
+      router.replace("/world");
     }
   }, [authUserId, hasSelectedAvatar, isLoaded, player.tutorialCompleted, router]);
 

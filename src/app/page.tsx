@@ -12,10 +12,12 @@ export default function RootPage() {
     if (!isLoaded || dataError) return;
     if (!authUserId) {
       router.replace("/auth");
-    } else if (hasSelectedAvatar && player.tutorialCompleted && (activeGoal || goals.length > 0)) {
+    } else if (!hasSelectedAvatar) {
+      router.replace("/onboarding");
+    } else if (player.tutorialCompleted && (activeGoal || goals.length > 0)) {
       router.replace("/home");
     } else {
-      router.replace("/onboarding");
+      router.replace("/world");
     }
   }, [player.tutorialCompleted, hasSelectedAvatar, authUserId, activeGoal, goals.length, isLoaded, dataError, router]);
 
