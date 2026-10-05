@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { LARA_ASSETS } from "@/lib/constants";
 import { useGame } from "@/store/gameContext";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 export interface LaraInAppTutorialProps {
   onComplete?: () => void;
@@ -119,7 +119,6 @@ const TUTORIAL_STEPS: TutorialStep[] = [
 ];
 
 export function LaraInAppTutorial({ onComplete }: LaraInAppTutorialProps) {
-  const router = useRouter();
   const pathname = usePathname();
   const { activeGoal, completeTutorial, submitGoal } = useGame();
 
@@ -130,29 +129,22 @@ export function LaraInAppTutorial({ onComplete }: LaraInAppTutorialProps) {
   const [isSavingGoal, setIsSavingGoal] = useState<boolean>(false);
 
   const step = TUTORIAL_STEPS[stepIndex];
+  const total = TUTORIAL_STEPS.length;
 
   // Dynamic Anchor Rect Lookup
   useEffect(() => {
-    setTargetRect(null); // Reset rect immediately when step or path changes to prevent leftover glow artifacts
-
-    if (step.targetAttr === "shell") {
-      return;
-    }
+    setTargetRect(null);
+    if (step.targetAttr === "shell") return;
 
     const updateRect = () => {
       const el = document.querySelector(`[data-tutorial-target="${step.targetAttr}"]`);
-      if (el) {
-        setTargetRect(el.getBoundingClientRect());
-      } else {
-        setTargetRect(null);
-      }
+      setTargetRect(el ? el.getBoundingClientRect() : null);
     };
 
     updateRect();
     const interval = setInterval(updateRect, 300);
     window.addEventListener("resize", updateRect);
     window.addEventListener("scroll", updateRect, true);
-
     return () => {
       clearInterval(interval);
       window.removeEventListener("resize", updateRect);
@@ -160,27 +152,20 @@ export function LaraInAppTutorial({ onComplete }: LaraInAppTutorialProps) {
     };
   }, [step.targetAttr, pathname, stepIndex]);
 
-  // Handle Target Click / Interaction
+  // Handle Target Click
   useEffect(() => {
     if (step.actionRequired !== "click" || step.targetAttr === "shell") return;
-
     const el = document.querySelector(`[data-tutorial-target="${step.targetAttr}"]`);
     if (!el) return;
-
     const handleTargetClick = () => {
-      setTimeout(() => {
-        setStepIndex((prev) => Math.min(prev + 1, TUTORIAL_STEPS.length - 1));
-      }, 150);
+      setTimeout(() => setStepIndex((prev) => Math.min(prev + 1, total - 1)), 150);
     };
-
     el.addEventListener("click", handleTargetClick);
-    return () => {
-      el.removeEventListener("click", handleTargetClick);
-    };
-  }, [step.targetAttr, step.actionRequired, stepIndex]);
+    return () => el.removeEventListener("click", handleTargetClick);
+  }, [step.targetAttr, step.actionRequired, stepIndex, total]);
 
   const handleNextBtn = async () => {
-    if (stepIndex < TUTORIAL_STEPS.length - 1) {
+    if (stepIndex < total - 1) {
       setStepIndex((prev) => prev + 1);
     } else {
       const saved = await completeTutorial();
@@ -197,7 +182,7 @@ export function LaraInAppTutorial({ onComplete }: LaraInAppTutorialProps) {
     try {
       await submitGoal(goalText.trim());
       setGoalText("");
-      setStepIndex(4); // Advance to "Goal Appears" step
+      setStepIndex(4);
     } catch (error) {
       setGoalError(error instanceof Error ? error.message : "Could not save your goal. Please try again.");
     } finally {
@@ -205,9 +190,30 @@ export function LaraInAppTutorial({ onComplete }: LaraInAppTutorialProps) {
     }
   };
 
+  // Desktop card position (near target or center-bottom)
+  const desktopStyle =
+    targetRect && step.targetAttr !== "path-map"
+      ? {
+          left: `${Math.max(16, Math.min(targetRect.left - 80, window.innerWidth - 440))}px`,
+          top: `${targetRect.top > 320 ? targetRect.top - 220 : targetRect.bottom + 16}px`,
+        }
+      : {
+          left: "50%",
+          bottom: "88px",
+          transform: "translateX(-50%)",
+        };
+
+  // Labels
+  const nextLabel =
+    step.id === 1 ? "Let's Begin →" : step.id === total ? "Begin Ascent 🚀" : "Next →";
+
+  const isActionable =
+    step.actionRequired === "none" || step.id === 1 || step.id === total;
+
   return (
     <div className="fixed inset-0 z-50 pointer-events-none select-none">
-      {/* Target Spotlight Highlight Ring (Only for specific buttons/cards, not full-screen canvas) */}
+
+      {/* ── Spotlight ring (all screen sizes) ───────────────────────────────── */}
       {targetRect && step.targetAttr !== "path-map" && step.targetAttr !== "shell" && (
         <div
           className="fixed z-40 rounded-2xl border-2 border-[var(--color-ascend-gold)] shadow-[0_0_25px_rgba(229,184,105,0.8)] animate-pulse pointer-events-none"
@@ -220,26 +226,121 @@ export function LaraInAppTutorial({ onComplete }: LaraInAppTutorialProps) {
         />
       )}
 
-      {/* Lara In-App Guide Dialog Overlay (Interactive pointer-events-auto on dialog only) */}
+      {/* ══════════════════════════════════════════════════════════════════════
+          MOBILE LAYOUT  (hidden on sm+)
+          Compact horizontal strip pinned above the bottom nav.
+          Lara sits as a tall image panel on the left; content on the right.
+          Never repositions relative to target elements — spotlight handles that.
+      ══════════════════════════════════════════════════════════════════════ */}
+      <div className="sm:hidden fixed bottom-[72px] left-2 right-2 z-50 pointer-events-auto">
+        <div className="rounded-2xl border-2 border-[var(--color-ascend-coral)]/80 bg-[var(--color-bg-surface)]/97 shadow-2xl backdrop-blur-md overflow-hidden">
+
+          {/* Main row: Lara panel + content */}
+          <div className="flex items-stretch">
+
+            {/* Lara image — tall left column with coral gradient bg */}
+            <div className="relative w-[72px] shrink-0 bg-gradient-to-b from-[var(--color-ascend-coral)]/20 via-[var(--color-ascend-coral)]/8 to-transparent">
+              <Image
+                src={step.pose}
+                alt="Lara Guide"
+                fill
+                className="object-contain object-bottom drop-shadow-[0_4px_12px_rgba(217,83,79,0.5)]"
+                priority
+              />
+              {/* Subtle progress bar on Lara's left edge */}
+              <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[var(--color-bg-elevated)]">
+                <div
+                  className="w-full bg-[var(--color-ascend-coral)] transition-all duration-500"
+                  style={{ height: `${(step.id / total) * 100}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Text content */}
+            <div className="flex-1 min-w-0 p-3 flex flex-col justify-between gap-2">
+
+              {/* Badge + Title row */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2 py-0.5 rounded-md bg-[var(--color-ascend-coral)] text-white text-[9px] font-black uppercase tracking-wider shrink-0">
+                  LARA
+                </span>
+                <span className="text-[12px] font-extrabold text-[var(--color-ascend-gold)] truncate">
+                  {step.title}
+                </span>
+              </div>
+
+              {/* Dialogue — 2 line cap on mobile */}
+              <p className="text-[11.5px] text-[var(--color-text-primary)] font-medium leading-snug line-clamp-2">
+                &ldquo;{step.dialogue}&rdquo;
+              </p>
+
+              {/* Footer: step counter + action */}
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[9px] font-bold text-[var(--color-text-muted)] tracking-widest shrink-0">
+                  {step.id}/{total}
+                </span>
+
+                {isActionable ? (
+                  <button
+                    type="button"
+                    onClick={handleNextBtn}
+                    className="px-4 py-2 rounded-xl font-black bg-[var(--color-ascend-coral)] hover:bg-[var(--color-ascend-coral-hover)] text-white text-[11px] uppercase tracking-wider transition-all active:scale-95 shadow-md shrink-0"
+                  >
+                    {nextLabel}
+                  </button>
+                ) : (
+                  <span className="text-[9.5px] text-[var(--color-ascend-gold)] font-bold animate-pulse text-right leading-tight">
+                    ✦ Tap the highlighted element
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Goal input — only for step 4 on mobile */}
+          {step.targetAttr === "goal-input" && !activeGoal && (
+            <form
+              onSubmit={handleGoalFormSubmit}
+              className="flex gap-2 px-3 pb-3 border-t border-[var(--color-border-subtle)] pt-2"
+            >
+              <input
+                type="text"
+                value={goalText}
+                onChange={(e) => setGoalText(e.target.value)}
+                placeholder="Type your goal here..."
+                className="flex-1 min-w-0 px-3 py-2 rounded-xl bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] text-[11px] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-ascend-coral)] placeholder:text-[var(--color-text-muted)]"
+                autoFocus
+              />
+              <button
+                type="submit"
+                disabled={isSavingGoal}
+                className="px-4 py-2 rounded-xl font-extrabold bg-[var(--color-ascend-coral)] hover:bg-[var(--color-ascend-coral-hover)] text-white text-[11px] shrink-0 disabled:opacity-60 transition-all active:scale-95"
+              >
+                {isSavingGoal ? "..." : "🚀 Go"}
+              </button>
+              {goalError && (
+                <span className="absolute bottom-full mb-1 left-3 text-[10px] font-semibold text-[var(--color-ascend-coral)]">
+                  {goalError}
+                </span>
+              )}
+            </form>
+          )}
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          DESKTOP LAYOUT  (hidden below sm)
+          Full card near the target element (or centered at bottom).
+          Lara is large and clearly visible on the left of the header.
+      ══════════════════════════════════════════════════════════════════════ */}
       <div
-        className="fixed z-50 pointer-events-auto transition-all duration-200"
-        style={
-          targetRect && step.targetAttr !== "path-map"
-            ? {
-                left: `${Math.max(16, Math.min(targetRect.left - 80, window.innerWidth - 420))}px`,
-                top: `${targetRect.top > 320 ? targetRect.top - 200 : targetRect.bottom + 16}px`,
-              }
-            : {
-                left: "50%",
-                bottom: "80px",
-                transform: "translateX(-50%)",
-              }
-        }
+        className="hidden sm:block fixed z-50 pointer-events-auto transition-all duration-200 w-[420px]"
+        style={desktopStyle}
       >
-        <div className="w-full max-w-md bg-[var(--color-bg-surface)]/95 border-2 border-[var(--color-ascend-coral)]/80 rounded-3xl p-5 shadow-2xl flex flex-col gap-3 backdrop-blur-md">
-          {/* Character Header + Speech */}
+        <div className="bg-[var(--color-bg-surface)]/95 border-2 border-[var(--color-ascend-coral)]/80 rounded-3xl p-5 shadow-2xl flex flex-col gap-3 backdrop-blur-md">
+
+          {/* Character header */}
           <div className="flex items-start gap-3">
-          {/* Transparent PNG Lara Character Overlay (No White Card Box!) */}
             <div className="relative w-28 h-36 shrink-0 drop-shadow-[0_8px_16px_rgba(217,83,79,0.4)]">
               <Image
                 src={step.pose}
@@ -259,14 +360,13 @@ export function LaraInAppTutorial({ onComplete }: LaraInAppTutorialProps) {
                   {step.title}
                 </span>
               </div>
-
-              <p className="text-sm sm:text-base text-[var(--color-text-primary)] font-medium leading-relaxed">
+              <p className="text-sm text-[var(--color-text-primary)] font-medium leading-relaxed">
                 &ldquo;{step.dialogue}&rdquo;
               </p>
             </div>
           </div>
 
-          {/* Goal Input Step Handler (Step 4) */}
+          {/* Goal input — step 4 on desktop */}
           {step.targetAttr === "goal-input" && !activeGoal && (
             <form onSubmit={handleGoalFormSubmit} className="flex flex-col gap-2 pt-2 border-t border-[var(--color-border-subtle)]">
               <input
@@ -290,27 +390,41 @@ export function LaraInAppTutorial({ onComplete }: LaraInAppTutorialProps) {
             </form>
           )}
 
-          {/* Tutorial Progress & Manual Step Buttons */}
-          <div className="flex items-center justify-between pt-2 border-t border-[var(--color-border-subtle)] text-[10px]">
-            <span className="font-bold text-[var(--color-text-muted)] tracking-wider">
-              STEP {step.id} OF {TUTORIAL_STEPS.length}
-            </span>
+          {/* Progress footer */}
+          <div className="flex items-center justify-between pt-2 border-t border-[var(--color-border-subtle)]">
+            {/* Step dots */}
+            <div className="flex items-center gap-1">
+              {TUTORIAL_STEPS.map((s) => (
+                <div
+                  key={s.id}
+                  className={`rounded-full transition-all duration-300 ${
+                    s.id === step.id
+                      ? "w-4 h-2 bg-[var(--color-ascend-coral)]"
+                      : s.id < step.id
+                      ? "w-2 h-2 bg-[var(--color-ascend-coral)]/50"
+                      : "w-2 h-2 bg-[var(--color-border-subtle)]"
+                  }`}
+                />
+              ))}
+            </div>
 
-            {step.actionRequired === "none" || step.id === 1 || step.id === 12 ? (
+            {isActionable ? (
               <button
+                type="button"
                 onClick={handleNextBtn}
                 className="px-5 py-2 rounded-xl font-bold bg-[var(--color-ascend-coral)] hover:bg-[var(--color-ascend-coral-hover)] text-white text-xs uppercase tracking-wider transition-all shadow transform hover:scale-[1.02]"
               >
-                {step.id === 1 ? "Let's Begin →" : step.id === 12 ? "Begin Ascent 🚀" : "Next →"}
+                {nextLabel}
               </button>
             ) : (
-              <span className="text-[var(--color-ascend-gold)] font-bold animate-pulse">
-                ✦ CLICK HIGHLIGHTED FEATURE TO CONTINUE
+              <span className="text-[10px] text-[var(--color-ascend-gold)] font-bold animate-pulse">
+                ✦ Click the highlighted feature
               </span>
             )}
           </div>
         </div>
       </div>
+
     </div>
   );
 }
