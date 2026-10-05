@@ -3,11 +3,12 @@ import type { CampaignDraft, CampaignRequest } from "./campaign";
 import { validateCampaignOutput } from "./campaign";
 import type { ResearchResult } from "./serpapi";
 import { timeframeLabel } from "@/lib/utils/timeframe";
+import { formatGoalTitle } from "@/lib/utils";
 
 type JourneyStep = { title: string; objective: string };
 type Topic = { title: string; kind: string; score: number; evidence: string[]; steps?: JourneyStep[]; objective?: string };
 
-const STOP = new Set("about after again also are because become before being between build can could desire does doing during each exam for from goal have help into make more most need only other preparing purpose reach that the their them then this through time want with work your".split(" "));
+const STOP = new Set("about after again also are because become before being between build can could desire does doing during each exam for from goal have help into make more most need only other preparing purpose reach that the their them then this through time want wants with work your i me my to will would shall should".split(" "));
 const DOMAIN_RULES: { title: string; kind: string; terms: string[] }[] = [
   { title: "Japanese Foundations", kind: "foundations", terms: ["hiragana", "katakana", "kana", "alphabet", "script", "pronunciation"] },
   { title: "Vocabulary & Kanji", kind: "vocabulary", terms: ["vocabulary", "vocab", "kanji", "words", "lexicon"] },
@@ -209,18 +210,7 @@ function titleCase(value: string): string {
 }
 
 function goalTitle(goal: string): string {
-  const meaningful = (goal.match(/[A-Za-z][A-Za-z0-9+#.-]*/g) ?? [])
-    .filter((token) => !STOP.has(token.toLowerCase()) && !/^\d+$/.test(token));
-  const acronym = meaningful.find((token) => token.length > 1 && token === token.toUpperCase());
-  const subject = acronym ?? meaningful.find((token) => !/^(in|to|for|my|me|japan|december|january|february|march|april|may|june|july|august|september|october|november)$/i.test(token)) ?? meaningful[0];
-  if (!subject) return "Goal Journey";
-  const action = /\b(prepare|preparing|exam|test|certification|MFI)\b/i.test(goal) ? "Prep"
-    : /\b(learn|learning|study|master)\b/i.test(goal) ? "Mastery" : "Journey";
-  let first = subject;
-  if (/^mathematics$/i.test(first)) first = "Math";
-  if (first.length > 1 && first === first.toUpperCase()) first = first;
-  else first = titleCase(first);
-  return `${first} ${action}`.slice(0, 100);
+  return formatGoalTitle(goal);
 }
 
 function researchTopics(goal: string, research: ResearchResult[]): Topic[] {

@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from "r
 import type { User } from "@supabase/supabase-js";
 import type { Player, Goal, Quest, Path, AvatarId, Title, Achievement } from "@/lib/types";
 import { AVATARS } from "@/lib/constants";
-import { getLevelFromXP, generateId } from "@/lib/utils";
+import { getLevelFromXP, generateId, formatGoalTitle } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 
 const DEFAULT_TITLES: Title[] = [
@@ -104,10 +104,19 @@ type PathRow = { id: string; goal_id: string; title: string; objective: string; 
 type QuestRow = { id: string; path_id: string; parent_quest_id: string | null; type: Quest["type"]; title: string; objective: string; difficulty: Quest["difficulty"]; xp_reward: number; status: Quest["status"]; prerequisites: string[]; progress: number; sort_order: number };
 
 function toGoal(row: GoalRow): Goal {
+  let title = row.title;
+  // Auto-heal legacy goals corrupted by the old "I Mastery" / "I Journey" / "I Prep" bug
+  if (/^i\s+(mastery|journey|prep)$/i.test(title.trim()) && row.description) {
+    const rawSubject = row.description.split(/\n|Strategy:/i)[0]?.trim();
+    if (rawSubject && rawSubject.length >= 3) {
+      title = formatGoalTitle(rawSubject);
+    }
+  }
+
   return {
     id: row.id,
     playerId: row.user_id,
-    title: row.title,
+    title,
     description: row.description,
     status: row.status,
     createdAt: row.created_at,
