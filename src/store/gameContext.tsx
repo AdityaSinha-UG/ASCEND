@@ -286,8 +286,19 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       // Do not let this initial lookup overwrite the newer account state.
       if (initialAuthGeneration !== authEventGeneration) return;
       if (error) {
-        setDataError(error.message);
-        setIsLoaded(true);
+        // AuthSessionMissingError means no session exists yet — the visitor is
+        // unauthenticated. Treat this exactly like a null user: clear state and
+        // let the game layout redirect to /auth. Do NOT surface this as a fatal
+        // dataError, which would show "Auth session missing!" to new visitors.
+        if (
+          error.name === "AuthSessionMissingError" ||
+          error.message?.toLowerCase().includes("auth session missing")
+        ) {
+          clearAccount();
+        } else {
+          setDataError(error.message);
+          setIsLoaded(true);
+        }
       } else if (user) {
         void loadAccount(user);
       } else {
