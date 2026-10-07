@@ -106,11 +106,8 @@ type QuestRow = { id: string; path_id: string; parent_quest_id: string | null; t
 function toGoal(row: GoalRow): Goal {
   let title = row.title;
   // Auto-heal legacy goals corrupted by the old "I Mastery" / "I Journey" / "I Prep" bug
-  if (/^i\s+(mastery|journey|prep)$/i.test(title.trim()) && row.description) {
-    const rawSubject = row.description.split(/\n|Strategy:/i)[0]?.trim();
-    if (rawSubject && rawSubject.length >= 3) {
-      title = formatGoalTitle(rawSubject);
-    }
+  if (/^(i\s+)?(mastery|journey|prep)(\s+(mastery|journey|prep))?$/i.test(title.trim())) {
+    title = formatGoalTitle(title, row.description ?? undefined);
   }
 
   return {
@@ -238,6 +235,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
         const goalRows = goalsResult.data as GoalRow[];
         const mappedGoals = goalRows.map(toGoal);
+        // Silently persist any auto-healed titles back to Supabase
+        for (let i = 0; i < goalRows.length; i++) {
+          if (mappedGoals[i].title !== goalRows[i].title) {
+            void supabase.from("goals").update({ title: mappedGoals[i].title }).eq("id", mappedGoals[i].id);
+          }
+        }
         const pathResult = goalRows.length
           ? await supabase.from("paths").select("id, goal_id, title, objective, status, sort_order")
               .in("goal_id", goalRows.map((goal) => goal.id)).order("sort_order")
@@ -386,10 +389,13 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const replayTutorial = () => persistProfileUpdate({ tutorial_completed: false });
 
   const submitGoal = async (goalTitle: string): Promise<Goal> => {
-    const title = goalTitle.trim();
-    if (title.length < 3 || title.length > 300 || /[\u0000-\u001f\u007f]/.test(title)) {
+    const rawInput = goalTitle.trim();
+    if (rawInput.length < 3 || rawInput.length > 300 || /[\u0000-\u001f\u007f]/.test(rawInput)) {
       throw new Error("Enter a goal between 3 and 300 characters.");
     }
+
+    const title = formatGoalTitle(rawInput);
+    const description = rawInput !== title ? rawInput : null;
 
     // Derive ownership from the verified Supabase Auth user, never from the
     // Player/Goal objects supplied by the UI.
@@ -398,7 +404,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
     const { data, error } = await supabase
       .from("goals")
-      .insert({ user_id: user.id, title })
+      .insert({ user_id: user.id, title, ...(description ? { description } : {}) })
       .select("id, user_id, title, description, status, created_at, target_date, timeframe_value, timeframe_unit, timeframe_context, campaign_analysis")
       .single();
 
@@ -430,20 +436,26 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     if (goalError) throw new Error("Your Goals could not be refreshed.");
     const goalRows = (goalData ?? []) as GoalRow[];
     const mappedGoals = goalRows.map(toGoal);
-    const { data: pathData, error: pathError } = goalRows.length
+    // Silently persist any auto-healed titles back to Supabase
+    for (let i = 0; i < goalRows.length; i++) {
+      if (mappedGoals[i].title !== goalRows[i].title) {
+        void supabase.from("goals").update({ title: mappedGoals[i].title }).eq("id", mappedGoals[i].id);
+      }
+    }
+    const pathData = goalRows.length
       ? await supabase.from("paths").select("id, goal_id, title, objective, status, sort_order")
           .in("goal_id", goalRows.map((goal) => goal.id)).order("sort_order")
       : { data: [], error: null };
-    if (pathError) throw new Error("Your Paths could not be refreshed.");
-    const pathRows = (pathData ?? []) as PathRow[];
-    const { data: questData, error: questError } = pathRows.length
+    if (pathData.error) throw new Error("Your Paths could not be refreshed.");
+    const pathRows = (pathData.data ?? []) as PathRow[];
+    const questData = pathRows.length
       ? await supabase.from("quests").select("id, path_id, parent_quest_id, type, title, objective, difficulty, xp_reward, status, prerequisites, progress, sort_order")
           .in("path_id", pathRows.map((path) => path.id)).order("sort_order")
       : { data: [], error: null };
-    if (questError) throw new Error("Your Quests could not be refreshed.");
+    if (questData.error) throw new Error("Your Quests could not be refreshed.");
     setGoals(mappedGoals);
     setActiveGoal((current) => mappedGoals.find((goal) => goal.id === current?.id) ?? mappedGoals[0] ?? null);
-    setQuests(toCampaignQuests(pathRows, (questData ?? []) as QuestRow[]));
+    setQuests(toCampaignQuests(pathRows, (questData.data ?? []) as QuestRow[]));
   };
 
   const startQuest = async (questId: string) => {

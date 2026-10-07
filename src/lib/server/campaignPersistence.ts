@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { createClient } from "@/lib/supabase/server";
 import type { CampaignDraft } from "./campaign";
+import { formatGoalTitle } from "@/lib/utils";
 
 type CampaignClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -176,10 +177,11 @@ export async function persistCampaign(
     }
 
     const description = `${campaign.goal.description}\n\nStrategy: ${campaign.goal.strategy}`;
+    const cleanTitle = formatGoalTitle(campaign.goal.title, campaign.goal.description);
     const { error: goalError } = await client
       .from("goals")
       .update({
-        title: campaign.goal.title,
+        title: cleanTitle,
         description,
         campaign_analysis: { smart: campaign.smart, assessment: campaign.assessment },
       })

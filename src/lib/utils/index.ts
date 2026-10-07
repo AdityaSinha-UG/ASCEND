@@ -66,12 +66,25 @@ export function generateId(): string {
  * Intelligently formats a user's raw goal input into a clean, RPG-worthy title.
  * Strips self-referential conversational prefixes ("I want to learn", "My goal is to")
  * and properly title-cases words while preserving industry acronyms.
+ * Can also heal corrupted placeholder titles ("I Mastery", "I Journey") using description.
  */
-export function formatGoalTitle(rawGoal: string): string {
+export function formatGoalTitle(rawGoal: string, fallbackDescription?: string): string {
   if (!rawGoal || typeof rawGoal !== "string") return "Ascent Journey";
 
+  let input = rawGoal.trim();
+
+  // If the title is literally a corrupted placeholder like "I Mastery", "I Journey", "I Prep", "Mastery Mastery"
+  if (/^(i\s+)?(mastery|journey|prep)(\s+(mastery|journey|prep))?$/i.test(input)) {
+    if (fallbackDescription) {
+      const extracted = fallbackDescription.split(/\n|Strategy:/i)[0]?.trim();
+      if (extracted && extracted.length >= 3 && !/^(i\s+)?(mastery|journey|prep)/i.test(extracted)) {
+        input = extracted;
+      }
+    }
+  }
+
   // 1. Strip conversational / self-referential prefix
-  let cleaned = rawGoal.trim()
+  let cleaned = input
     .replace(/^["'`]+|["'`]+$/g, "")
     .replace(/^(i\s+(want|would\s+like|need|wish|hope|plan|aim|intend|will|must)\s+to\s+)/i, "")
     .replace(/^(my\s+goal\s+is\s+(to\s+)?)/i, "")
@@ -84,7 +97,18 @@ export function formatGoalTitle(rawGoal: string): string {
     .replace(/^to\s+/i, "")
     .trim();
 
-  if (!cleaned) cleaned = rawGoal.trim();
+  if (!cleaned) cleaned = input;
+
+  // If after cleaning it's just "mastery" or "journey" or "prep", handle safely
+  if (/^(mastery|journey|prep)$/i.test(cleaned)) {
+    if (fallbackDescription && fallbackDescription.toLowerCase().includes("python")) {
+      return "Learn Python Foundation";
+    }
+    if (fallbackDescription && (fallbackDescription.toLowerCase().includes("japanese") || fallbackDescription.toLowerCase().includes("jlpt"))) {
+      return "Learn Japanese";
+    }
+    return "Personal Journey";
+  }
 
   const ACRONYMS = new Set(["JLPT", "CSS", "HTML", "API", "SQL", "AWS", "AI", "ML", "UI", "UX", "SDK", "RPC", "REST", "CLI", "N1", "N2", "N3", "N4", "N5"]);
   const MINOR_WORDS = new Set(["a", "an", "the", "and", "but", "or", "for", "nor", "on", "at", "to", "from", "by", "with", "in", "of"]);
@@ -98,10 +122,10 @@ export function formatGoalTitle(rawGoal: string): string {
     const upper = word.toUpperCase();
     const formatted = ACRONYMS.has(upper) ? upper : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
 
-    if (/\b(exam|test|jlpt|certification)\b/i.test(rawGoal)) {
+    if (/\b(exam|test|jlpt|certification)\b/i.test(input)) {
       return `${formatted} Prep`.slice(0, 100);
     }
-    if (/\b(learn|study|master|code|program)\b/i.test(rawGoal)) {
+    if (/\b(learn|study|master|code|program)\b/i.test(input)) {
       return `${formatted} Foundations`.slice(0, 100);
     }
     return `${formatted} Mastery`.slice(0, 100);

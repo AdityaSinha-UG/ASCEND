@@ -5,6 +5,7 @@ import { hasCompleteCampaign, logCampaignPersistenceFailure, persistCampaign } f
 import { createClient } from "@/lib/supabase/server";
 import { isAdminClientConfigured } from "@/lib/supabase/admin";
 import { inferTimeframeContext, parseTimeframe, type Timeframe } from "@/lib/utils/timeframe";
+import { formatGoalTitle } from "@/lib/utils";
 
 export const runtime = "nodejs";
 
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
   // to the authenticated session. No client-provided owner ID is accepted.
   const { data: goal, error: goalError } = await supabase
     .from("goals")
-    .select("id, title, timeframe_value, timeframe_unit, timeframe_context")
+    .select("id, title, description, timeframe_value, timeframe_unit, timeframe_context")
     .eq("id", goalId)
     .eq("user_id", userId)
     .maybeSingle();
@@ -155,8 +156,9 @@ export async function POST(request: NextRequest) {
           }
         }
 
+        const goalSubject = formatGoalTitle(goal.title, goal.description ?? undefined);
         const { goal: fullGoal, researchResults } = await researchCampaignForGoal(
-          { goal: goal.title, timeframe },
+          { goal: goalSubject, timeframe },
           (event) => send(event),
         );
         send("ai_generation_started");
