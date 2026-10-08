@@ -7,6 +7,15 @@ import { useRouter } from "next/navigation";
 export default function TermsPage() {
   const router = useRouter();
 
+  function handleReturn() {
+    // Opened in a new tab → close it; fall back to navigating back if close is blocked
+    if (window.opener || window.history.length <= 1) {
+      window.close();
+    } else {
+      router.back();
+    }
+  }
+
   return (
     <div className="min-h-dvh w-full flex flex-col items-center justify-start p-4 sm:p-8 text-[var(--color-text-primary)]">
       <div className="w-full max-w-4xl bg-[var(--color-bg-surface)]/95 border border-[var(--color-border-default)] rounded-3xl p-6 sm:p-10 shadow-2xl backdrop-blur-md flex flex-col gap-6">
@@ -14,7 +23,7 @@ export default function TermsPage() {
         <div className="flex items-center justify-between border-b border-[var(--color-border-subtle)] pb-4">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => router.back()}
+              onClick={handleReturn}
               className="px-3.5 py-1.5 rounded-xl bg-[var(--color-bg-elevated)] border border-[var(--color-border-subtle)] text-xs font-bold text-[var(--color-text-secondary)] hover:text-white transition-colors"
             >
               ← Back
