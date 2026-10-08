@@ -57,10 +57,18 @@ export function AuthScreen() {
       setIsSubmitting(true);
       try {
         const supabase = createClient();
+        const origin =
+          typeof window !== "undefined" && window.location.origin
+            ? window.location.origin
+            : process.env.NEXT_PUBLIC_SITE_URL ?? "";
+        const emailRedirectTo = origin
+          ? `${origin}/auth/callback?next=/onboarding`
+          : undefined;
         const { data, error: signUpError } = await supabase.auth.signUp({
           email: signupEmail.trim(),
           password,
           options: {
+            emailRedirectTo,
             data: { username: signupName.trim() },
           },
         });
