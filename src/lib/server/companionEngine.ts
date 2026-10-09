@@ -171,15 +171,47 @@ const JOURNEYS: Array<{ pattern: RegExp; paths: Omit<Topic, "score" | "evidence"
       { title: "Check Readiness", objective: "Compare recent results with the target standard and make a final revision plan." },
     ] },
   ] },
-];
+  { pattern: /\b(hackathon|competition|contest|compete|challenge|tournament|prize|award|win)\b/i, paths: [
+    { title: "Competition Understanding", kind: "research", objective: "Understand the competition format, rules, judging criteria, and what a winning submission looks like.", steps: [
+      { title: "Research the Competition", objective: "Find official rules, format, judging criteria, and past winners for the competition to understand what is expected." },
+      { title: "Identify the Judging Criteria", objective: "List the official scoring dimensions and assign a priority weight to each based on their point share." },
+      { title: "Study Past Winners", objective: "Analyse 2-3 winning submissions or projects and note what they did exceptionally well across the judging criteria." },
+      { title: "Define Your Winning Strategy", objective: "Write a one-paragraph strategy that explains how your approach will score well on each judging criterion." },
+    ] },
+    { title: "Skill Preparation", kind: "programming", objective: "Build or sharpen the technical and domain skills required to produce a competitive submission.", steps: [
+      { title: "Audit Required Skills", objective: "List the skills and tools the competition requires and rate your current confidence in each on a 1-5 scale." },
+      { title: "Close Key Skill Gaps", objective: "Work through a focused tutorial or exercise for each skill rated below 3, and verify competence with a small task." },
+      { title: "Practice Under Constraints", objective: "Complete a small practice project under realistic time constraints to simulate the competition environment." },
+      { title: "Review Feedback on Practice Work", objective: "Identify at least three improvements from your practice output and apply them in a revised version." },
+    ] },
+    { title: "Project Planning", kind: "project", objective: "Plan a focused, deliverable submission that aligns tightly with the competition criteria.", steps: [
+      { title: "Define the Project Concept", objective: "Write a clear one-sentence description of your submission idea and confirm it satisfies the competition brief." },
+      { title: "Break the Project into Tasks", objective: "Split the concept into concrete, time-boxed tasks and assign each to a slot in the available competition time." },
+      { title: "Identify Risks Early", objective: "List the three most likely blockers and write a fallback plan or workaround for each." },
+      { title: "Build a Minimal Prototype", objective: "Implement the core feature that demonstrates your concept and confirm it works end-to-end." },
+    ] },
+    { title: "Execution & Build", kind: "project", objective: "Build and polish the submission to a demonstrably high standard within the competition deadline.", steps: [
+      { title: "Build the Full Submission", objective: "Complete all planned tasks and confirm each acceptance criterion is met before moving to polish." },
+      { title: "Test Against the Criteria", objective: "Walk through each judging criterion and provide evidence from your submission that addresses it." },
+      { title: "Polish the Presentation", objective: "Improve the README, demo, or slides so a judge can understand the value and implementation in under two minutes." },
+      { title: "Conduct a Final Review", objective: "Have someone unfamiliar with the project review it against the judging criteria and note their top feedback." },
+    ] },
+    { title: "Submission & Reflection", kind: "exam", objective: "Submit on time and extract lessons to improve in future competitions.", steps: [
+      { title: "Prepare the Submission Package", objective: "Assemble all required deliverables following the official submission checklist and confirm completeness." },
+      { title: "Submit Before the Deadline", objective: "Submit the final package with at least one hour to spare and confirm receipt from the platform." },
+      { title: "Document Lessons Learned", objective: "Write a short retrospective covering what went well, what would be done differently, and the next skill to develop." },
+    ] },
+  ] },
+] as const;
 
 function goalJourney(goal: string, researchTopics: Topic[]): Topic[] | null {
   const hasTravelIntent = /\b(travel|trip|visit|go to|move to|relocat|abroad|vacation|holiday)\b/i.test(goal);
   const pattern = /\bpython\b/i.test(goal) ? JOURNEYS[2]
     : /\b(math|mathematics|algebra|calculus|geometry|statistics)\b/i.test(goal) ? JOURNEYS[3]
-      : /\b(jlpt|n[1-5])\b/i.test(goal) || (/\bjapanese\b/i.test(goal) && /\b(exam|test|certification)\b/i.test(goal)) ? JOURNEYS[0]
-        : /\b(japan|travel|trip|visit|abroad|vacation|holiday)\b/i.test(goal) ? JOURNEYS[1]
-          : undefined;
+      : /\b(hackathon|competition|contest|compete|challenge|tournament|prize|award|win)\b/i.test(goal) ? JOURNEYS[4]
+        : /\b(jlpt|n[1-5])\b/i.test(goal) || (/\bjapanese\b/i.test(goal) && /\b(exam|test|certification)\b/i.test(goal)) ? JOURNEYS[0]
+          : /\b(japan|travel|trip|visit|abroad|vacation|holiday)\b/i.test(goal) ? JOURNEYS[1]
+            : undefined;
   if (!pattern) return null;
   const paths = [...pattern.paths];
   if (pattern.paths.some((path) => path.title === "JLPT N5 Understanding") && hasTravelIntent) {

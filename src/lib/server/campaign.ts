@@ -2,7 +2,7 @@ import "server-only";
 import type { QuestDifficulty } from "@/lib/types";
 import type { Timeframe, TimeframeContext, TimeframeUnit } from "@/lib/utils/timeframe";
 import { timeframeLabel } from "@/lib/utils/timeframe";
-import { ResearchError, searchWeb, type ResearchResult } from "./serpapi";
+import { searchWeb, type ResearchResult } from "./serpapi";
 
 const MAX_GOAL_LENGTH = 300;
 const MAX_PATHS = 10;
@@ -313,18 +313,21 @@ export async function researchCampaignForGoal(input: { goal: unknown; timeframe:
   const goal = input.goal.trim();
   if (goal.length < 3 || goal.length > MAX_GOAL_LENGTH || /[\u0000-\u001f\u007f]/.test(goal)) throw new CampaignServiceError("Enter a goal between 3 and 300 characters.", 400);
   reportProgress?.("timeframe_confirmed");
-  let research: ResearchResult[];
-  try {
-    reportProgress?.("research_started");
-    const searches = await Promise.all(createResearchQueries(goal, input.timeframe).map((query) => searchWeb(query)));
-    research = searches.flatMap((result) => result.results).slice(0, 12);
-  } catch (error) {
-    if (error instanceof ResearchError) throw new CampaignServiceError("Live research is temporarily unavailable.", 503, "research");
-    throw new CampaignServiceError("Live research is temporarily unavailable.", 503, "research");
-  }
+  reportProgress?.("research_started");
+
+  // Use allSettled so a rate-limit, timeout, or error on any single query
+  // does not abort the whole process — partial results are still used,
+  // and planCampaign works fine with an empty research array.
+  const queries = createResearchQueries(goal, input.timeframe);
+  const settled = await Promise.allSettled(queries.map((query) => searchWeb(query)));
+  const research: ResearchResult[] = settled
+    .flatMap((result) => (result.status === "fulfilled" ? result.value.results : []))
+    .slice(0, 12);
+
   reportProgress?.("research_completed");
   return { goal, researchResults: research };
 }
+
 
 export async function generateCampaignForGoal(input: { goal: unknown; timeframe: Timeframe }, reportProgress?: CampaignProgressReporter): Promise<CampaignDraft> {
   const { goal, researchResults } = await researchCampaignForGoal(input, reportProgress);
