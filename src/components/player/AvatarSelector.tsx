@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { AVATARS } from "@/lib/constants";
+import { AscendLogo } from "@/components/ui/AscendLogo";
 import type { AvatarId } from "@/lib/types";
 
 interface AvatarSelectorProps {
@@ -33,7 +34,8 @@ export function AvatarSelector({ selectedId, onSelect, onConfirm }: AvatarSelect
   return (
     <div className="w-full max-w-5xl flex flex-col items-center gap-8 py-8 px-4 animate-fadeIn">
       {/* Title & Subtitle */}
-      <div className="text-center flex flex-col gap-2">
+      <div className="text-center flex flex-col items-center gap-2">
+        <AscendLogo size={56} priority className="mb-1" />
         <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--color-text-primary)] tracking-tight">
           Choose Your ASCEND Avatar
         </h2>

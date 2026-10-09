@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Goal, Path } from "@/lib/types";
 import { useGame } from "@/store/gameContext";
-import { SystemIcon } from "@/components/ui/AscendIcon";
+import { SystemIcon, AscendLogo } from "@/components/ui/AscendIcon";
 import { generateCampaign, type CampaignStage } from "@/lib/utils/campaignGeneration";
 import { CampaignGenerationPanel } from "@/components/world/CampaignGenerationPanel";
 import { CampaignMapCanvas } from "@/components/world/CampaignMapCanvas";
@@ -143,8 +143,8 @@ export function GoalPathMap({ goal, paths, onBackToWorld, onSelectPath }: GoalPa
 
       {!campaignExists ? (
         <section data-tutorial-target="path-map" className="w-full max-w-5xl min-h-[260px] rounded-3xl border border-[var(--color-border-default)] bg-[var(--color-bg-base)]/60 flex items-center justify-center p-6">
-          <div className="max-w-md text-center rounded-2xl border border-[var(--color-border-default)] bg-[var(--color-bg-surface)]/90 p-6 shadow-xl">
-            <span className="text-3xl text-[var(--color-ascend-gold)]" aria-hidden="true">✦</span>
+          <div className="max-w-md text-center rounded-2xl border border-[var(--color-border-default)] bg-[var(--color-bg-surface)]/90 p-6 shadow-xl flex flex-col items-center">
+            <AscendLogo size={44} className="mb-1" />
             <h2 className="mt-2 text-sm font-black text-[var(--color-text-primary)]">No Paths generated yet</h2>
             <p className="mt-2 text-xs leading-relaxed text-[var(--color-text-secondary)]">ASCEND will research this Goal and prepare its Paths and Quests for your World.</p>
             {timeframeRequired && (

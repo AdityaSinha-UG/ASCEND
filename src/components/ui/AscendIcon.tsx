@@ -5,6 +5,8 @@ import React from "react";
 export type NavIconName = "home" | "quest" | "world" | "rewards" | "profile" | "settings";
 export type SystemIconName = "achievement" | "location" | "locked" | "title" | "xp";
 
+export { AscendLogo } from "./AscendLogo";
+
 interface NavIconProps {
   name: NavIconName;
   active?: boolean;

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useGame } from "@/store/gameContext";
-import { SystemIcon } from "@/components/ui/AscendIcon";
+import { SystemIcon, AscendLogo } from "@/components/ui/AscendIcon";
 import { createClient } from "@/lib/supabase/client";
 
 export default function SettingsPage() {
@@ -321,7 +321,7 @@ export default function SettingsPage() {
       {/* ── 5. ABOUT ASCEND ────────────────────────────────────────────────────── */}
       <div className="p-6 rounded-3xl bg-[var(--color-bg-surface)] border border-[var(--color-border-default)] shadow-xl flex flex-col gap-3">
         <h2 className="text-sm font-extrabold text-[var(--color-ascend-gold)] uppercase tracking-wider flex items-center gap-2 border-b border-[var(--color-border-subtle)] pb-3">
-          <span>▲</span> About ASCEND
+          <AscendLogo size={20} /> About ASCEND
         </h2>
 
         <div className="flex flex-col gap-1.5 text-xs text-[var(--color-text-secondary)] leading-relaxed">

@@ -1,10 +1,12 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import Image from "next/image";
 import { AVATARS } from "@/lib/constants";
 import { useGame } from "@/store/gameContext";
 import { getLevelProgress, xpToNextLevel } from "@/lib/utils";
+import { AscendLogo } from "@/components/ui/AscendLogo";
 
 export function TopHUD() {
   const { player } = useGame();
@@ -17,8 +19,16 @@ export function TopHUD() {
 
   return (
     <header className="w-full bg-[var(--color-bg-surface)]/95 backdrop-blur-md border-b border-[var(--color-border-subtle)] px-4 sm:px-6 py-2.5 flex items-center justify-between gap-4 sticky top-0 z-40 shadow-sm">
-      {/* Left: Avatar PFP + Username & Level Badge */}
-      <div className="flex items-center gap-3">
+      {/* Left: Brand Logo + Avatar PFP + Username & Level Badge */}
+      <div className="flex items-center gap-2.5 sm:gap-3">
+        <Link
+          href="/home"
+          className="shrink-0 flex items-center hover:opacity-80 transition-opacity"
+          aria-label="ASCEND Home"
+        >
+          <AscendLogo size={28} priority />
+        </Link>
+        <div className="h-6 w-px bg-[var(--color-border-subtle)] shrink-0" />
         <div className="relative w-9 h-9 rounded-full overflow-hidden border-2 border-[var(--color-ascend-gold)] bg-black/60 shrink-0 shadow">
           <Image
             src={activeAvatarDef.pfpPath}

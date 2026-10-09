@@ -11,7 +11,8 @@ export const metadata: Metadata = {
   description:
     "Transform your real-life goals into an adaptive RPG progression system.",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/logo/ascend-logo.png",
+    apple: "/logo/ascend-logo.png",
   },
 };
 

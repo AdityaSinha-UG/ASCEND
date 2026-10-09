@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useGame } from "@/store/gameContext";
 import type { WorldLandmark } from "@/lib/constants/worldThemes";
 import type { Goal } from "@/lib/types";
+import { AscendLogo } from "@/components/ui/AscendLogo";
 import {
   REALM_CARD_HEIGHT,
   REALM_CARD_WIDTH,
@@ -293,7 +294,7 @@ export function WorldMap({ onSelectLandmark }: WorldMapProps) {
 
         <div className="flex flex-col gap-1 z-10">
           <div className="flex items-center gap-2.5">
-            <span className="text-base text-[var(--color-ascend-gold)]">▲</span>
+            <AscendLogo size={24} />
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
               Global World Map
             </h1>

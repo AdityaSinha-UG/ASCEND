@@ -9,6 +9,7 @@ import { BottomNavBar } from "@/components/navigation/BottomNavBar";
 import { QuestDetailDrawer } from "@/components/quests/QuestDetailDrawer";
 import { LaraInAppTutorial } from "@/components/lara/LaraInAppTutorial";
 import { NavIcon, NavIconName } from "@/components/ui/AscendIcon";
+import { AscendLogo } from "@/components/ui/AscendLogo";
 
 interface SidebarItem {
   id: NavIconName;
@@ -40,8 +41,9 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
 
   if (!isLoaded) {
     return (
-      <div className="min-h-dvh flex items-center justify-center bg-[var(--color-bg-base)] text-[var(--color-text-muted)] font-bold text-xs uppercase tracking-widest">
-        Initializing ASCEND World...
+      <div className="min-h-dvh flex flex-col items-center justify-center gap-4 bg-[var(--color-bg-base)] text-[var(--color-text-muted)] font-bold text-xs uppercase tracking-widest animate-fadeIn">
+        <AscendLogo size={64} priority />
+        <span>Initializing ASCEND World...</span>
       </div>
     );
   }
@@ -63,9 +65,14 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
       <div className="flex flex-1 w-full relative overflow-hidden">
         {/* Compact Left Sidebar (Desktop Navigation) */}
         <aside className="hidden lg:flex flex-col gap-2 w-44 p-3 bg-[var(--color-bg-surface)] border-r border-[var(--color-border-subtle)] shrink-0 z-20">
-          <div className="flex items-center gap-2 px-3 py-2 text-xs font-black text-[var(--color-ascend-gold)] tracking-wider">
-            <span>▲ ASCEND</span>
-          </div>
+          <Link
+            href="/home"
+            className="flex items-center gap-2.5 px-3 py-2 text-xs font-black text-[var(--color-ascend-gold)] tracking-wider hover:opacity-85 transition-opacity"
+            aria-label="ASCEND Home"
+          >
+            <AscendLogo size={22} priority />
+            <span>ASCEND</span>
+          </Link>
 
           <nav className="flex flex-col gap-1 mt-2">
             {SIDEBAR_ITEMS.map((item) => {

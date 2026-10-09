@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { AscendLogo } from "@/components/ui/AscendLogo";
 
 interface LegalModalProps {
   type: "terms" | "privacy" | null;
@@ -28,6 +29,7 @@ export function LegalModal({ type, onClose }: LegalModalProps) {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[var(--color-border-subtle)] pb-3">
           <div className="flex items-center gap-2">
+            <AscendLogo size={20} />
             <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-[var(--color-bg-elevated)] text-[var(--color-ascend-gold)]">
               ASCEND LEGAL
             </span>

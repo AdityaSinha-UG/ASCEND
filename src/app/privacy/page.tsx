@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { AscendLogo } from "@/components/ui/AscendLogo";
 
 export default function PrivacyPage() {
   const router = useRouter();
@@ -28,9 +29,12 @@ export default function PrivacyPage() {
             >
               ← Back
             </button>
-            <span className="text-xs font-extrabold text-[var(--color-ascend-gold)] uppercase tracking-wider">
-              ✦ ASCEND PRIVACY
-            </span>
+            <div className="flex items-center gap-2">
+              <AscendLogo size={18} />
+              <span className="text-xs font-extrabold text-[var(--color-ascend-gold)] uppercase tracking-wider">
+                ASCEND PRIVACY
+              </span>
+            </div>
           </div>
           <Link
             href="/terms"

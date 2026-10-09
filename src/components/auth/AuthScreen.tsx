@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LegalModal } from "@/components/legal/LegalModal";
 import { createClient } from "@/lib/supabase/client";
+import { AscendLogo } from "@/components/ui/AscendLogo";
 
 export function AuthScreen() {
   const router = useRouter();
@@ -137,9 +138,7 @@ export function AuthScreen() {
       <div className="w-full max-w-md bg-[var(--color-bg-surface)]/95 backdrop-blur-xl border border-[var(--color-border-default)] rounded-3xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex flex-col gap-6 relative z-10 animate-fadeIn">
         {/* ASCEND Logo & Branding */}
         <div className="flex flex-col items-center text-center gap-2">
-          <div className="w-12 h-12 rounded-2xl bg-[var(--color-bg-elevated)] border border-[var(--color-ascend-gold)]/40 flex items-center justify-center shadow-lg">
-            <span className="text-2xl font-black text-[var(--color-ascend-gold)]">▲</span>
-          </div>
+          <AscendLogo size={72} priority className="mb-1" />
           <h1 className="text-3xl font-black text-[var(--color-text-primary)] tracking-tight">
             ASCEND
           </h1>

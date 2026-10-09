@@ -1,13 +1,17 @@
 "use client";
 
 import { CAMPAIGN_STAGE_LABELS, type CampaignStage } from "@/lib/utils/campaignGeneration";
+import { AscendLogo } from "@/components/ui/AscendLogo";
 
 export function CampaignGenerationPanel({ stage, error }: { stage: CampaignStage | null; error?: string | null }) {
   const activeIndex = stage ? CAMPAIGN_STAGE_LABELS.findIndex((item) => item.id === stage) : -1;
   const awaitingTimeframe = stage === "timeframe_required";
   return (
     <section aria-live="polite" className="w-full max-w-xl rounded-2xl border border-[var(--color-ascend-gold)]/40 bg-[var(--color-bg-surface)]/95 p-4 shadow-[0_0_24px_rgba(229,184,105,0.12)]">
-      <h2 className="text-sm font-black text-[var(--color-ascend-gold)]">ASCEND is building your world</h2>
+      <div className="flex items-center gap-2">
+        <AscendLogo size={18} />
+        <h2 className="text-sm font-black text-[var(--color-ascend-gold)]">ASCEND is building your world</h2>
+      </div>
       <ol className="mt-3 grid gap-2">
         {CAMPAIGN_STAGE_LABELS.map((item, index) => {
           const complete = activeIndex >= 0 && index < activeIndex;

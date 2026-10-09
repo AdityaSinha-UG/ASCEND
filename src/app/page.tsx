@@ -3,6 +3,7 @@
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useGame } from "@/store/gameContext";
+import { AscendLogo } from "@/components/ui/AscendLogo";
 
 export default function RootPage() {
   const router = useRouter();
@@ -23,15 +24,17 @@ export default function RootPage() {
 
   if (dataError) {
     return (
-      <div className="min-h-dvh flex items-center justify-center p-6 text-center text-sm text-[var(--color-ascend-coral)]">
-        ASCEND could not load your account data: {dataError}
+      <div className="min-h-dvh flex flex-col items-center justify-center gap-4 p-6 text-center text-sm text-[var(--color-ascend-coral)]">
+        <AscendLogo size={64} priority />
+        <span>ASCEND could not load your account data: {dataError}</span>
       </div>
     );
   }
 
   return (
-    <div className="min-h-dvh flex items-center justify-center bg-[var(--color-bg-base)] text-[var(--color-text-muted)] text-xs font-extrabold uppercase tracking-widest">
-      Entering ASCEND World...
+    <div className="min-h-dvh flex flex-col items-center justify-center gap-4 bg-[var(--color-bg-base)] text-[var(--color-text-muted)] text-xs font-extrabold uppercase tracking-widest animate-fadeIn">
+      <AscendLogo size={72} priority />
+      <span>Entering ASCEND World...</span>
     </div>
   );
 }

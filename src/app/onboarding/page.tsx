@@ -7,6 +7,7 @@ import { AvatarSelector } from "@/components/player/AvatarSelector";
 import { LaraInAppTutorial } from "@/components/lara/LaraInAppTutorial";
 import { CampaignGenerationPanel } from "@/components/world/CampaignGenerationPanel";
 import { generateCampaign, type CampaignStage } from "@/lib/utils/campaignGeneration";
+import { AscendLogo } from "@/components/ui/AscendLogo";
 import type { AvatarId } from "@/lib/types";
 
 type OnboardingStage = "avatar" | "tutorial" | "goal";
@@ -102,8 +103,9 @@ export default function OnboardingPage() {
 
   if (!isLoaded || !authUserId) {
     return (
-      <main className="min-h-dvh flex items-center justify-center bg-[var(--color-bg-base)] text-[var(--color-text-muted)] text-xs font-extrabold uppercase tracking-widest">
-        Restoring ASCEND account...
+      <main className="min-h-dvh flex flex-col items-center justify-center gap-4 bg-[var(--color-bg-base)] text-[var(--color-text-muted)] text-xs font-extrabold uppercase tracking-widest animate-fadeIn">
+        <AscendLogo size={64} priority />
+        <span>Restoring ASCEND account...</span>
       </main>
     );
   }
@@ -137,7 +139,8 @@ export default function OnboardingPage() {
       {/* STAGE 3: REAL GOAL INPUT */}
       {stage === "goal" && (
         <div className="w-full max-w-xl bg-[var(--color-bg-surface)] border border-[var(--color-border-default)] rounded-3xl p-6 sm:p-10 shadow-2xl flex flex-col gap-6 animate-fadeIn relative z-10">
-          <div className="text-center flex flex-col gap-2">
+          <div className="text-center flex flex-col items-center gap-2">
+            <AscendLogo size={48} className="mb-1" />
             <span className="text-xs font-black tracking-widest text-[var(--color-ascend-gold)] uppercase">
               ✦ STEP 3 OF 3: THE ORIGIN HORIZON
             </span>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { AscendLogo } from "@/components/ui/AscendLogo";
 
 export interface ContextualHelpBoxProps {
   goalId?: string;
@@ -157,7 +158,7 @@ export function ContextualHelpBox({
       {/* ── Box Header ───────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between border-b border-[var(--color-border-subtle)] pb-2.5">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-black text-[var(--color-ascend-gold)]">▲</span>
+          <AscendLogo size={16} />
           <span className="text-[10px] font-extrabold uppercase tracking-widest text-[var(--color-ascend-gold)]">
             ASCEND Guidance
           </span>
